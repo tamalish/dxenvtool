@@ -1,0 +1,61 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+### VARIABLES ###
+#
+# IMPORTANT
+# Install Plugin: vagrant plugin install vagrant-proxyconf
+myPROXY     = "http://proxy.sr.se:8080"
+myNOPROXY   = "localhost,127.0.0.1,::1,192.168.56.0/24,.sr.se"
+#
+# Define the box to use for the virtual machines
+# Official Ubuntu box   - 585M    - "ubuntu/focal64" = Ubuntu 20.04 LTS amd64
+# Official Ubuntu box   - 613M    - "ubuntu/jammy64" = Ubuntu 22.04 LTS amd64
+myBOX       = "ubuntu/focal64"
+#
+myNAME      = "V Ubuntu 20.04 LTS"
+myHOSTNAME  = "node"
+myMEMORY    = "2048"
+myCPU       = "2"
+myGUI       = false
+#
+myCOUNT     = 3
+#
+myNETWORK   = "192.168.56"
+myIP        = "2"
+
+### END VARIABLES ###
+
+Vagrant.configure("2") do |config|
+  config.vm.box         = myBOX
+  config.proxy.http     = myPROXY
+  config.proxy.https    = myPROXY
+  config.proxy.no_proxy = myNOPROXY
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+
+  (1..myCOUNT).each do |i|
+    config.vm.define "#{myHOSTNAME}-0#{i}" do |subconfig|
+      subconfig.vm.hostname = "#{myHOSTNAME}-0#{i}"
+      subconfig.vm.network "private_network", ip: "#{myNETWORK}.#{myIP}#{+i}"
+
+      subconfig.vm.provider "virtualbox" do |vb|
+        vb.memory = myMEMORY
+        vb.cpus   = myCPU
+        vb.name   = "#{myNAME} - 0#{i}"
+      end
+
+    end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update --quiet --quiet
+    #mkdir -p /usr/local/share/ca-certificates/<my-organisation>
+    #curl -SsfLk -o /usr/local/share/ca-certificates/<my-organisation>/cert_ca_root.crt '<URL>'
+    #curl -SsfLk -o /usr/local/share/ca-certificates/<my-organisation>/cert_ca_intermidiate_ca.crt '<URL>'
+    #update-ca-certificates
+    echo "vm.swappiness=5" | tee /etc/sysctl.d/10-swapiness.conf
+    /sbin/sysctl --quiet --system &> /dev/null
+  SHELL
+
+  end
+
+end
