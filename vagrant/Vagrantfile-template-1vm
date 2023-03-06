@@ -1,0 +1,53 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+### VARIABLES ###
+#
+# IMPORTANT
+# Install Plugin: vagrant plugin install vagrant-proxyconf
+myPROXY     = "http://proxy.sr.se:8080"
+myNOPROXY   = "localhost,127.0.0.1,::1,192.168.56.0/24,.sr.se"
+#
+# Define the box to use for the virtual machines
+# Official Ubuntu box   - 585M    - "ubuntu/focal64" = Ubuntu 20.04 LTS amd64
+# Official Ubuntu box   - 613M    - "ubuntu/jammy64" = Ubuntu 22.04 LTS amd64
+myBOX       = "ubuntu/focal64"
+myNAME      = "Ubuntu 20.04 LTS"
+myHOSTNAME  = "focal"
+myMEMORY    = "2048"
+myCPU       = "2"
+myGUI       = false
+myNETWORK   = "192.168.56.10"
+#
+### END VARIABLES ###
+
+Vagrant.configure("2") do |config|
+  config.vm.box         = myBox
+  config.proxy.http     = myPROXY
+  config.proxy.https    = myPROXY
+  config.proxy.no_proxy = myNOPROXY
+  config.vm.hostname    = myHOSTNAME
+  config.vm.network "private_network", ip: "#{myNETWORK}"
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory   = myMEMORY
+    vb.cpus     = myCPU
+    vb.name     = myNAME
+    vb.gui      = myGUI
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update --quiet
+    apt-get upgrade --yes --quiet --no-show-upgraded
+    #mkdir -p /usr/local/share/ca-certificates/<my-organisation>
+    #curl -SsfLk -o /usr/local/share/ca-certificates/<my-organisation>/cert_ca_root.crt '<URL>'
+    #curl -SsfLk -o /usr/local/share/ca-certificates/<my-organisation>/cert_ca_issuing.crt '<URL>'
+    #update-ca-certificates
+    echo "vm.swappiness=5" | tee /etc/sysctl.d/10-swapiness.conf
+    /sbin/sysctl --quiet --system
+  SHELL
+  # Alternatively create a advanced script
+  #config.vm.provision:shell, path: "bootstrap.sh"
+
+end
