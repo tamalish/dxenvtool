@@ -1,6 +1,3 @@
-
-
-
 # Part One
 # run PowerShell as Administrator
 
