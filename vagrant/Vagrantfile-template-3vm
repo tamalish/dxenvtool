@@ -5,7 +5,7 @@
 #
 # IMPORTANT
 # Install Plugin: vagrant plugin install vagrant-proxyconf
-myPROXY     = "http://proxy.sr.se:8080"
+myPROXY     = "http://<host:port>"
 myNOPROXY   = "localhost,127.0.0.1,::1,192.168.56.0/24,.<domain>"
 #
 # Define the box to use for the virtual machines
